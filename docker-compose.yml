@@ -1,0 +1,42 @@
+services:
+  source-service:
+    container_name: source-service
+    build:
+      context: .
+      dockerfile: source-service/Dockerfile
+    environment:
+      ADDR: ":5000"
+    ports:
+      - "127.0.0.1:5000:5000"
+    stop_grace_period: 8s
+
+  telemetry-service:
+    container_name: telemetry-service
+    build:
+      context: .
+      dockerfile: telemetry-service/Dockerfile
+    environment:
+      ADDR: ":5001"
+      SOURCE_URL: "http://source-service:5000"
+      NOTIFICATION_URL: "http://notification-service:5002"
+    ports:
+      - "127.0.0.1:5001:5001"
+    depends_on:
+      - source-service
+      - notification-service
+    stop_grace_period: 8s
+
+  notification-service:
+    container_name: notification-service
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    environment:
+      ADDR: ":5002"
+    ports:
+      - "127.0.0.1:5002:5002"
+    stop_grace_period: 8s
+
+networks:
+  default:
+    name: project-network
